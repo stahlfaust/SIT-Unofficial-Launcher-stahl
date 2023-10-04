@@ -1,0 +1,98 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SIT_Unofficial_Launcher.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:SIT_Unofficial_Launcher.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="SIT_Unofficial_Launcher.Views.MainWindow"
+		Width="800" Height="450"
+        Icon="/Assets/Stay-In-Tarkov-512.ico"
+		CanResize="False"
+		x:CompileBindings="False"
+        Title="SIT Unofficial Launcher by Lacyway">
+	
+	<Window.Background>
+		<ImageBrush Source="/Assets/StayInTarkov.jpg"></ImageBrush>
+	</Window.Background>
+
+	<Grid>
+		
+		<StackPanel Grid.Column="0">
+			<TabControl>
+				<TabItem Header="Play">
+					<Grid>
+
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="Auto"/>
+						</Grid.ColumnDefinitions>
+
+						<StackPanel Margin="5">
+							<TextBlock Text="Address" Margin="0,5,0,5"/>
+							<!--<TextBox Name="AddressBox" Width="350" HorizontalAlignment="Left" Watermark="Enter IP Address..." DataContext="{Binding SelectedItem, ElementName=ServerCombo}" Text="{Binding Address}"/>-->
+							<TextBox Name="AddressBox" Width="300" HorizontalAlignment="Left" Watermark="Enter IP Address..." Text="{Binding LastServer}"/>
+							<TextBlock Text="Username" Margin="0,5,0,5"/>
+							<TextBox Width="150" HorizontalAlignment="Left" Watermark="Enter Username..." Text="{Binding Username, Mode=TwoWay}" Name="UsernameBox"/>
+							<TextBlock Text="Password" Margin="0,5,0,5"/>
+							<TextBox Width="150" HorizontalAlignment="Left" Watermark="Enter Password..." PasswordChar="*" Text="{Binding Password, Mode=TwoWay}" Name="PasswordBox"/>
+							<Button Margin="0,10,0,0" Content="Connect" ToolTip.Tip="{Binding Text, ElementName=AddressBox, StringFormat='Attempt to connect to {0} and launch the game.'}" Click="OnConnectClick"/>
+						</StackPanel>
+
+						<!--<StackPanel Grid.Column="1" Margin="5">
+							<TextBlock>Server</TextBlock>
+							<StackPanel Orientation="Horizontal">
+
+								<ComboBox Name="ServerCombo" ItemsSource="{Binding Servers}" Width="200">
+
+									<ComboBox.ItemTemplate>
+										<DataTemplate>
+											<TextBlock Text="{Binding Name}"/>
+										</DataTemplate>
+									</ComboBox.ItemTemplate>
+
+								</ComboBox>
+								<Button Click="OnAddServerClick" Content="+" ToolTip.Tip="Add Server" VerticalAlignment="Top"/>
+								<Button Click="OnRemoveServerClick" Content="-" ToolTip.Tip="Remove Server" VerticalAlignment="Top"/>
+							</StackPanel>
+						</StackPanel>-->
+						
+						
+					</Grid>
+				</TabItem>
+				<TabItem Header="Tools">
+					<StackPanel Margin="5">
+						<!--<Button Content="Cleanup EFT Directory" Click="OnCleanupDirClick" Margin="5" ToolTip.Tip="Cleans up the EFT install path, removing unnecessary files."/>-->
+						<Button Content="Install SIT" Click="OnInstallSITClick" Margin="5" ToolTip.Tip="Install 'SIT' and 'BepInEx'. Also installs 'Aki.Common' and 'Aki.Reflection' for mod support."/>
+						<Button Content="Open EFT Folder" Margin="5" Click="OnOpenEFTFolderClick" ToolTip.Tip="Open the EFT install path."/>
+						<Button Content="Open Plugins Folder" Click="OnOpenPluginsFolderClick" Margin="5" ToolTip.Tip="Open the BepInEx plugins folder."/>
+						<Button Content="Download Patcher" Margin="5" Click="OnDownloadPatcherClick" ToolTip.Tip="Download the 'DowngradePatcher' matching your EFT version. Extract the patcher to your 'Install Path'."/>
+						<Button Content="Open SIT Config" Margin="5" Click="OnSITConfigClick" ToolTip.Tip="Open SIT config file."/>
+					</StackPanel>
+
+				</TabItem>
+				
+				<TabItem Header="Settings">
+					<StackPanel>						
+						<CheckBox Content="Close Launcher After Game Launch" ToolTip.Tip="Closes the launcher automatically after opening the game." IsChecked="{Binding CloseAfterLaunch}"/>
+						<StackPanel Orientation="Horizontal">
+							<TextBlock VerticalAlignment="Center">Install Path: </TextBlock>
+							<TextBox Margin="10,0,0,0" Width="600" IsReadOnly="True" IsHitTestVisible="False" Text="{Binding InstallPath}"/>
+							<Button Margin="10,0,0,0" Click="OnChangeInstallPathClick" Content="Change" ToolTip.Tip="Change the install path of your EFT Client."/>
+						</StackPanel>
+						<TextBlock Text="{Binding TarkovVersion, StringFormat='EFT Version: {0}'}" Margin="0,5,0,0"/>
+					</StackPanel>
+				</TabItem>
+			</TabControl>
+			
+		</StackPanel>
+		<StackPanel VerticalAlignment="Bottom">
+			<TextBlock Margin="10,0,0,0">Stay in Tarkov - Powered by SPT-AKI Server</TextBlock>
+			<TextBlock Margin="10,5,0,5" Text="{Binding InstallPath, StringFormat='Install Path: {0}'}"/>
+		</StackPanel>
+		<StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5">
+			<TextBlock Name="StatusText" HorizontalAlignment="Center" IsVisible="False"/>
+			<ProgressBar Name="StatusProgressBar" IsIndeterminate="True" IsVisible="False" Width="300"/>
+		</StackPanel>
+	</Grid>
+</Window>

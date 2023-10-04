@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34024.191
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SIT Unofficial Launcher", "SIT-Unofficial-Launcher\SIT Unofficial Launcher.csproj", "{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SIT Unofficial Launcher.Desktop", "SIT-Unofficial-Launcher.Desktop\SIT Unofficial Launcher.Desktop.csproj", "{636F2A3B-F0FD-403E-A808-16993750C34D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}.Debug|x64.ActiveCfg = Debug|x64
+		{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}.Debug|x64.Build.0 = Debug|x64
+		{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}.Release|x64.ActiveCfg = Release|x64
+		{92E17D61-7AE6-4B59-ACB4-64E3166B8CA7}.Release|x64.Build.0 = Release|x64
+		{636F2A3B-F0FD-403E-A808-16993750C34D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{636F2A3B-F0FD-403E-A808-16993750C34D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{636F2A3B-F0FD-403E-A808-16993750C34D}.Debug|x64.ActiveCfg = Debug|x64
+		{636F2A3B-F0FD-403E-A808-16993750C34D}.Debug|x64.Build.0 = Debug|x64
+		{636F2A3B-F0FD-403E-A808-16993750C34D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{636F2A3B-F0FD-403E-A808-16993750C34D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{636F2A3B-F0FD-403E-A808-16993750C34D}.Release|x64.ActiveCfg = Release|x64
+		{636F2A3B-F0FD-403E-A808-16993750C34D}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {98A27878-4569-4406-8B10-5B7E11DA67D0}
+	EndGlobalSection
+EndGlobal
