@@ -70,6 +70,12 @@ namespace SIT_Unofficial_Launcher
             get => _tarkovVersion;
             set => SetField(ref _tarkovVersion, value);
         }
+        private bool _lookForUpdates = false;
+        public bool LookForUpdates
+        {
+            get => _lookForUpdates;
+            set => SetField(ref _lookForUpdates, value);
+        }
 
         public static LauncherConfig Load()
         {

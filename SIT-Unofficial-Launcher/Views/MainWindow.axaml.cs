@@ -21,6 +21,7 @@ using Avalonia.Data;
 using System.Reflection;
 using System.Text.Json;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Data.Converters;
 
 namespace SIT_Unofficial_Launcher.Views;
 
@@ -34,6 +35,24 @@ public partial class MainWindow : Window
         InitializeComponent();
         config = LauncherConfig.Load();
         DataContext = config;
+
+        VersionText.Text = "Launcher Version: " + Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+        if (config.LookForUpdates == true)
+            LookForUpdate();
+    }
+
+    private async void LookForUpdate()
+    {
+        string latestVersion = await httpClient.GetStringAsync("https://raw.githubusercontent.com/Lacyway/V-Rising-Server-Manager/master/VERSION".Trim());
+        if (latestVersion != Assembly.GetExecutingAssembly().GetName().Version.ToString())
+        {
+            ButtonResult result = await MessageBoxManager.GetMessageBoxStandard("Update Found", "New Update Available. Would you like to go to the download page?", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question).ShowWindowDialogAsync(this);
+            if (result == ButtonResult.Yes)
+            {
+                Process.Start("explorer.exe", "https://github.com/Lacyway/SIT-Unofficial-Launcher/releases/latest");
+            }
+        }
     }
 
     private async Task CleanUpEFTDirectory()
@@ -275,6 +294,12 @@ public partial class MainWindow : Window
     {
         config.Save(config);
 
+        if (!File.Exists(config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll"))
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Error", "Unable to find 'SIT.Core' in installation folder. Make sure SIT is installed.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            return;
+        }
+
         string returnData = await Dispatcher.UIThread.InvokeAsync(LoginToServer);
 
 
@@ -328,10 +353,24 @@ public partial class MainWindow : Window
             config.TarkovVersion = fileVersion;
             config.Save(config);
 
-            var msgBoxInfo = MessageBoxManager.GetMessageBoxStandard("Info", $"Your selected EFT version is: {fileVersion}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info);
-            await msgBoxInfo.ShowWindowDialogAsync(this);
+            await MessageBoxManager.GetMessageBoxStandard("Info", $"Your selected EFT version is: {fileVersion}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
         }        
 
+    }
+
+    private async void OnCheckVersionClick(object sender, RoutedEventArgs e)
+    {
+        string path = config.InstallPath + @"\EscapeFromTarkov.exe";
+        if (File.Exists(path))
+        {
+            string fileVersion = FileVersionInfo.GetVersionInfo(path).FileVersion;
+            config.TarkovVersion = fileVersion;
+            await MessageBoxManager.GetMessageBoxStandard("Info", $"Your selected EFT version is: {fileVersion}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
+        }
+        else
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Error", $"Could not locate 'EscapeFromTarkov.exe'.\nPath: {path}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
+        }
     }
 
     //private async void OnCleanupDirClick(object sender, RoutedEventArgs e)

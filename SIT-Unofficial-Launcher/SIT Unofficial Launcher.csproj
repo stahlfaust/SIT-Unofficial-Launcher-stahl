@@ -74,21 +74,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="References\bsg.componentace.compression.libs.zlib.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="References\bsg.console.core.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="References\bsg.microsoft.extensions.objectpool.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Include="References\bsg.system.buffers.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
+    <Folder Include="References\aa\" />
   </ItemGroup>
 </Project>
