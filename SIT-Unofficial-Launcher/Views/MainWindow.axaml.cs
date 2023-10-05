@@ -1,7 +1,5 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
-using SIT_Unofficial_Launcher;
 using System.IO;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
@@ -9,7 +7,6 @@ using MsBox.Avalonia.Dto;
 using System.Collections.Generic;
 using MsBox.Avalonia.Models;
 using System.Diagnostics;
-using MsBox.Avalonia.Base;
 using Avalonia.Platform.Storage;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,11 +14,8 @@ using System.Net.Http;
 using Avalonia.Threading;
 using System;
 using System.Threading;
-using Avalonia.Data;
 using System.Reflection;
 using System.Text.Json;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Converters;
 
 namespace SIT_Unofficial_Launcher.Views;
 
@@ -39,12 +33,12 @@ public partial class MainWindow : Window
         VersionText.Text = "Launcher Version: " + Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
         if (config.LookForUpdates == true)
-            LookForUpdate();
+            LookForUpdate();        
     }
 
     private async void LookForUpdate()
     {
-        string latestVersion = await httpClient.GetStringAsync("https://raw.githubusercontent.com/Lacyway/V-Rising-Server-Manager/master/VERSION".Trim());
+        string latestVersion = await httpClient.GetStringAsync("https://raw.githubusercontent.com/Lacyway/SIT-Unofficial-Launcher/master/Version.txt".Trim());
         if (latestVersion != Assembly.GetExecutingAssembly().GetName().Version.ToString())
         {
             ButtonResult result = await MessageBoxManager.GetMessageBoxStandard("Update Found", "New Update Available. Would you like to go to the download page?", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question).ShowWindowDialogAsync(this);
@@ -231,20 +225,27 @@ public partial class MainWindow : Window
         if (string.IsNullOrEmpty(AddressBox.Text))
         {
             await MessageBoxManager.GetMessageBoxStandard("Error", "No server address provided", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
-            return null;
+            return "error";
         }
 
         if (AddressBox.Text.EndsWith("/"))
         {
             await MessageBoxManager.GetMessageBoxStandard("Error", "Server address is incorrect, you should NOT have a / at the end", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
-            return null;
+            return "error";
+        }
+
+        if (string.IsNullOrEmpty(UsernameBox.Text))
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Error", "You cannot use an empty username for your account", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            return "error";
         }
 
         if (string.IsNullOrEmpty(PasswordBox.Text))
         {
             await MessageBoxManager.GetMessageBoxStandard("Error", "You cannot use an empty password for your account", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
-            return null;
+            return "error";
         }
+
         TarkovRequesting requesting = new TarkovRequesting(null, AddressBox.Text, false);
 
         Dictionary<string, string> data = new Dictionary<string, string>
@@ -281,11 +282,13 @@ public partial class MainWindow : Window
         }
         catch (System.Net.WebException webEx)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Error", "Unable to communicate with the Server", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            await MessageBoxManager.GetMessageBoxStandard("Error", $"Unable to communicate with the Server\n{webEx.Message}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            return "error";
         }
         catch (Exception ex)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Error", "Unable to communicate with the Server", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            await MessageBoxManager.GetMessageBoxStandard("Error", $"Unable to communicate with the Server\n{ex.Message}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            return "error";
         }
         return null;
     }
@@ -302,6 +305,8 @@ public partial class MainWindow : Window
 
         string returnData = await Dispatcher.UIThread.InvokeAsync(LoginToServer);
 
+        if (returnData == "error")
+            return;
 
         if (string.IsNullOrEmpty(returnData))
         {
@@ -360,6 +365,12 @@ public partial class MainWindow : Window
 
     private async void OnCheckVersionClick(object sender, RoutedEventArgs e)
     {
+        if (config.InstallPath == null)
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Error", "There is no install path selected.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            return;
+        }
+
         string path = config.InstallPath + @"\EscapeFromTarkov.exe";
         if (File.Exists(path))
         {
@@ -392,8 +403,8 @@ public partial class MainWindow : Window
             Icon = MsBox.Avalonia.Enums.Icon.Setting,
             ButtonDefinitions = new List<ButtonDefinition>()
             {
-                new ButtonDefinition() { Name = "3.6.1" },
-                new ButtonDefinition() { Name = "3.7.0" }
+                new() { Name = "3.6.1" },
+                new() { Name = "3.7.0" }
             }
         });
         var result = await msgBox.ShowWindowDialogAsync(this);

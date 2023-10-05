@@ -18,7 +18,8 @@
 
 	<Grid>
 		
-		<StackPanel Grid.Column="0">
+		<StackPanel Grid.Column="0" Margin="2">
+			
 			<TabControl>
 				<TabItem Header="Play">
 					<Grid>
@@ -63,11 +64,11 @@
 				<TabItem Header="Tools">
 					<StackPanel Margin="5">
 						<!--<Button Content="Cleanup EFT Directory" Click="OnCleanupDirClick" Margin="5" ToolTip.Tip="Cleans up the EFT install path, removing unnecessary files."/>-->
-						<Button Content="Install SIT" Click="OnInstallSITClick" Margin="5" ToolTip.Tip="Install 'SIT' and 'BepInEx'. Also installs 'Aki.Common' and 'Aki.Reflection' for mod support."/>
-						<Button Content="Open EFT Folder" Margin="5" Click="OnOpenEFTFolderClick" ToolTip.Tip="Open the EFT install path."/>
-						<Button Content="Open Plugins Folder" Click="OnOpenPluginsFolderClick" Margin="5" ToolTip.Tip="Open the BepInEx plugins folder."/>
-						<Button Content="Download Patcher" Margin="5" Click="OnDownloadPatcherClick" ToolTip.Tip="Download the 'DowngradePatcher' matching your EFT version. Extract the patcher to your 'Install Path'."/>
-						<Button Content="Open SIT Config" Margin="5" Click="OnSITConfigClick" ToolTip.Tip="Open SIT config file."/>
+						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Install SIT" Click="OnInstallSITClick" Margin="5" ToolTip.Tip="Install 'SIT' and 'BepInEx'. Also installs 'Aki.Common' and 'Aki.Reflection' for mod support."/>
+						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open EFT Folder" Margin="5" Click="OnOpenEFTFolderClick" ToolTip.Tip="Open the EFT install path."/>
+						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open Plugins Folder" Click="OnOpenPluginsFolderClick" Margin="5" ToolTip.Tip="Open the BepInEx plugins folder."/>
+						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Download Patcher" Margin="5" Click="OnDownloadPatcherClick" ToolTip.Tip="Download the 'DowngradePatcher' matching your EFT version. Extract the patcher to your 'Install Path'."/>
+						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open SIT Config" Margin="5" Click="OnSITConfigClick" ToolTip.Tip="Open SIT config file."/>
 					</StackPanel>
 
 				</TabItem>
