@@ -1,0 +1,41 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+			<StackPanel>
+				<Button Content="TestButton"/>
+				<Button Content="TestButton" Classes="TitleBar"/>
+			</StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- Add Styles Here -->
+
+	<!--Title Bar Buttons-->
+	<Style Selector="Button.TitleBar">
+		<Setter Property="BorderBrush" Value="Transparent"/>
+	</Style>
+
+	<Style Selector="Button.TitleBar:pointerover">
+		<Setter Property="FontWeight" Value="SemiBold"/>
+	</Style>
+
+	<Style Selector="Button.TitleBar:pointerover /template/ ContentPresenter">
+		<Setter Property="BorderBrush" Value="Transparent"/>
+		<Setter Property="BorderThickness" Value="0"/>
+	</Style>
+
+	<!--Normal Buttons-->
+	<Style Selector="Button">
+		<Setter Property="BorderBrush" Value="DarkGray"/>
+	</Style>
+
+	<Style Selector="Button:pointerover">
+		<Setter Property="FontWeight" Value="SemiBold"/>
+	</Style>
+
+	<Style Selector="Button:pointerover /template/ ContentPresenter">
+		<Setter Property="BorderBrush" Value="DarkGray"/>
+	</Style>
+	
+</Styles>

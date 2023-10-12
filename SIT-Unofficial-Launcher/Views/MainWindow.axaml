@@ -4,21 +4,27 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:SIT_Unofficial_Launcher.Views"
+		xmlns:cc="using:SIT_Unofficial_Launcher.CustomControls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="SIT_Unofficial_Launcher.Views.MainWindow"
 		Width="800" Height="450"
         Icon="/Assets/Stay-In-Tarkov-512.ico"
 		CanResize="False"
 		x:CompileBindings="False"
+		ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
         Title="SIT Unofficial Launcher by Lacyway">
 	
 	<Window.Background>
-		<ImageBrush Source="/Assets/StayInTarkov.jpg"></ImageBrush>
+		<ImageBrush Source="/Assets/StayInTarkov.jpg"/>
 	</Window.Background>
 
-	<Grid>
+	<Grid RowDefinitions="Auto, *, Auto">
+
+		<cc:TitleBar/>
 		
-		<StackPanel Grid.Column="0" Margin="2">
+		<StackPanel Grid.Column="0" Grid.Row="1" Margin="2">
 			
 			<TabControl>
 				<TabItem Header="Play">
@@ -85,7 +91,7 @@
 						</StackPanel>
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="{Binding TarkovVersion, StringFormat='EFT Version: {0}'}" Margin="0,10,0,0"/>
-							<Button Content="Check" Margin="10,5,0,0" Click="OnCheckVersionClick"/>
+							<Button Content="Check" Margin="10,5,0,0" Click="OnCheckVersionClick" ToolTip.Tip="Check version of current install path."/>
 						</StackPanel>
 					</StackPanel>
 				</TabItem>
@@ -94,7 +100,7 @@
 		</StackPanel>
 		
 		
-		<Grid>
+		<Grid Grid.Row="2">
 
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition/>

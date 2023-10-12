@@ -25,6 +25,7 @@ public partial class App : Application
         {
             desktop.MainWindow = new MainWindow
             {
+                WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterScreen
                 //DataContext = new MainViewModel()
             };
         }

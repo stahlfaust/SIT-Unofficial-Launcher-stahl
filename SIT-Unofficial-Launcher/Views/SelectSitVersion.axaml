@@ -7,7 +7,10 @@
 		Icon="/Assets/Stay-In-Tarkov-512.ico"
 		CanResize="False"
 		x:CompileBindings="False"
-		Width="650" Height="150"
+		Width="650" Height="150"		
+		ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
         Title="Select Version">
 
 	<StackPanel Margin="5">
@@ -23,7 +26,7 @@
 			
 		</ComboBox>
 		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-			<Button Content="Install" Margin="5" Click="OnInstallClick"/>
+			<Button Content="Install" Margin="5" Click="OnInstallClick" ToolTip.Tip="Install the selected version."/>
 			<Button Content="Cancel" Margin="5" Click="OnCancelClick"/>
 		</StackPanel>
 	</StackPanel>

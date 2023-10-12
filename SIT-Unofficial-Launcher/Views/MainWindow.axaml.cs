@@ -17,7 +17,6 @@ using System.Threading;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Avalonia.Platform;
 
 namespace SIT_Unofficial_Launcher.Views;
 
@@ -131,16 +130,16 @@ public partial class MainWindow : Window
             Directory.CreateDirectory(config.InstallPath + @"\BepInEx\plugins");
         }
 
-        //We don't use index as they might be different
-        GithubRelease.Asset assemblyAsset = version.assets.Find(q => q.name == "Assembly-CSharp.dll");
-        GithubRelease.Asset sitcoreAsset = version.assets.Find(q => q.name == "SIT.Core.dll");
+        //We don't use index as they might be different from version to version
+        string assemblyUrl = version.assets.Find(q => q.name == "Assembly-CSharp.dll").browser_download_url;
+        string sitcoreUrl = version.assets.Find(q => q.name == "SIT.Core.dll").browser_download_url;
 
-        await DownloadFile(assemblyAsset.browser_download_url, config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", "Assembly-CSharp.dll");
+        await DownloadFile(assemblyUrl, config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", "Assembly-CSharp.dll");
         if (File.Exists(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll"))
             File.Copy(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", config.InstallPath + @"\SITLauncher\Backup\CoreFiles\Assembly-CSharp.dll", true);
         File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", true);
 
-        await DownloadFile(sitcoreAsset.browser_download_url, config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", "SIT.Core.dll");                    
+        await DownloadFile(assemblyUrl, config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", "SIT.Core.dll");                    
         File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll", true);
 
         using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("SIT_Unofficial_Launcher.Resources.Aki.Common.dll"))
@@ -363,7 +362,7 @@ public partial class MainWindow : Window
 
         try
         {
-            StatusText.Text = "Fetcing releases...";
+            StatusText.Text = "Fetching releases...";
             StatusText.IsVisible = true;
             StatusProgressBar.IsVisible = true;
 
@@ -382,20 +381,20 @@ public partial class MainWindow : Window
                         release.body = match.Value;
                     }
 
-                    List<GithubRelease.Asset> newAssets = new();
-                    foreach (GithubRelease.Asset asset in release.assets)
-                    {
-                        if (asset.name == "Assembly-CSharp.dll" || asset.name == "SIT.Core.dll")
-                            newAssets.Add(asset);
-                    }
-                    release.assets = newAssets;
+                    //List<GithubRelease.Asset> newAssets = new();
+                    //foreach (GithubRelease.Asset asset in release.assets)
+                    //{
+                    //    if (asset.name == "Assembly-CSharp.dll" || asset.name == "SIT.Core.dll")
+                    //        newAssets.Add(asset);
+                    //}
+                    //release.assets = newAssets;
                 }
 
                 StatusText.Text = null;
                 StatusText.IsVisible = false;
                 StatusProgressBar.IsVisible = false;
 
-                SelectSitVersion selectWindow = new(githubReleases, config.TarkovVersion);
+                SelectSitVersion selectWindow = new(githubReleases, config.TarkovVersion) { WindowStartupLocation = WindowStartupLocation.CenterOwner };
                 GithubRelease selectedVersion = await selectWindow.ShowDialog<GithubRelease>(this);
 
                 if (selectedVersion != null)
@@ -415,7 +414,7 @@ public partial class MainWindow : Window
         }
         catch (HttpRequestException ex)
         {
-            Debug.Write(ex);
+            Debug.WriteLine(ex.Message);
         }
         
     }

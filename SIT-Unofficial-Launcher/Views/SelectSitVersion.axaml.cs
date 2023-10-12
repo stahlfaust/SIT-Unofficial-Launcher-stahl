@@ -1,12 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using DialogHostAvalonia;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net.Http;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace SIT_Unofficial_Launcher.Views
 {
@@ -30,6 +24,8 @@ namespace SIT_Unofficial_Launcher.Views
         {
             if (ReleasesCombo.SelectedItem != null)
                 Close(ReleasesCombo.SelectedItem);
+            else
+                Close(null);
         }
 
         private void OnCancelClick(object sender, RoutedEventArgs e)

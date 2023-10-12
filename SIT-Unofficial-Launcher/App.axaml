@@ -6,9 +6,10 @@
 
     <Application.Styles>
         <FluentTheme />
+		<StyleInclude Source="/CustomStyles.axaml"/>
     </Application.Styles>
 
 	<Application.Resources>
-		
+
 	</Application.Resources>
 </Application>
