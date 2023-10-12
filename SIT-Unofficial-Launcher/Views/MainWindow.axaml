@@ -30,14 +30,15 @@
 						</Grid.ColumnDefinitions>
 
 						<StackPanel Margin="5">
-							<TextBlock Text="Address" Margin="0,5,0,5"/>
+							<TextBlock Text="Address" Margin="0,5,0,5" FontWeight="Bold"/>
 							<!--<TextBox Name="AddressBox" Width="350" HorizontalAlignment="Left" Watermark="Enter IP Address..." DataContext="{Binding SelectedItem, ElementName=ServerCombo}" Text="{Binding Address}"/>-->
 							<TextBox Name="AddressBox" Width="300" HorizontalAlignment="Left" Watermark="Enter IP Address..." Text="{Binding LastServer}"/>
-							<TextBlock Text="Username" Margin="0,5,0,5"/>
+							<TextBlock Text="Username" Margin="0,5,0,5" FontWeight="Bold"/>
 							<TextBox Width="150" HorizontalAlignment="Left" Watermark="Enter Username..." Text="{Binding Username, Mode=TwoWay}" Name="UsernameBox"/>
-							<TextBlock Text="Password" Margin="0,5,0,5"/>
+							<TextBlock Text="Password" Margin="0,5,0,5" FontWeight="Bold"/>
 							<TextBox Width="150" HorizontalAlignment="Left" Watermark="Enter Password..." PasswordChar="*" Text="{Binding Password, Mode=TwoWay}" Name="PasswordBox"/>
-							<Button Margin="0,10,0,0" Content="Connect" ToolTip.Tip="{Binding Text, ElementName=AddressBox, StringFormat='Attempt to connect to {0} and launch the game.'}" Click="OnConnectClick"/>
+							<CheckBox Content="Remember me" Margin="0,5,0,5" IsChecked="{Binding RememberLogin}" ToolTip.Tip="Saves your username and password."/>
+							<Button Margin="0,5,0,0" Content="Connect" ToolTip.Tip="{Binding Text, ElementName=AddressBox, StringFormat='Attempt to connect to {0} and launch the game.'}" Click="OnConnectClick"/>
 						</StackPanel>
 
 						<!--<StackPanel Grid.Column="1" Margin="5">
@@ -65,7 +66,7 @@
 					<StackPanel Margin="5">
 						<!--<Button Content="Cleanup EFT Directory" Click="OnCleanupDirClick" Margin="5" ToolTip.Tip="Cleans up the EFT install path, removing unnecessary files."/>-->
 						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Install SIT" Click="OnInstallSITClick" Margin="5" ToolTip.Tip="Install 'SIT' and 'BepInEx'. Also installs 'Aki.Common' and 'Aki.Reflection' for mod support."/>
-						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open EFT Folder" Margin="5" Click="OnOpenEFTFolderClick" ToolTip.Tip="Open the EFT install path."/>
+						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open Install Folder" Margin="5" Click="OnOpenEFTFolderClick" ToolTip.Tip="Open the EFT install path."/>
 						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open Plugins Folder" Click="OnOpenPluginsFolderClick" Margin="5" ToolTip.Tip="Open the BepInEx plugins folder."/>
 						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Download Patcher" Margin="5" Click="OnDownloadPatcherClick" ToolTip.Tip="Download the 'DowngradePatcher' matching your EFT version. Extract the patcher to your 'Install Path'."/>
 						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open SIT Config" Margin="5" Click="OnSITConfigClick" ToolTip.Tip="Open SIT config file."/>

@@ -46,6 +46,12 @@ namespace SIT_Unofficial_Launcher
             get => _installPath;
             set => SetField(ref _installPath, value);
         }
+        private bool _rememberLogin = false;
+        public bool RememberLogin
+        {
+            get => _rememberLogin;
+            set => SetField(ref _rememberLogin, value);
+        }
         private bool _automaticallyInstallSIT = true;
         public bool AutomaticallyInstallSIT
         {
@@ -89,9 +95,18 @@ namespace SIT_Unofficial_Launcher
             return config;
         }
 
-        public void Save(LauncherConfig launcherConfig)
+        public void Save(LauncherConfig launcherConfig, bool SaveAccount = false)
         {
-            File.WriteAllText("LauncherConfig.json", JsonSerializer.Serialize(launcherConfig, new JsonSerializerOptions{ WriteIndented = true }));
+            if (SaveAccount == false)
+            {
+                LauncherConfig newLauncherConfig = (LauncherConfig)launcherConfig.MemberwiseClone();
+                newLauncherConfig.Username = null;
+                newLauncherConfig.Password = null;
+
+                File.WriteAllText("LauncherConfig.json", JsonSerializer.Serialize(newLauncherConfig, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            else
+                File.WriteAllText("LauncherConfig.json", JsonSerializer.Serialize(launcherConfig, new JsonSerializerOptions { WriteIndented = true }));
         }
     }
 

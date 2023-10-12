@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="150"
+        x:Class="SIT_Unofficial_Launcher.Views.SelectSitVersion"
+		Icon="/Assets/Stay-In-Tarkov-512.ico"
+		CanResize="False"
+		x:CompileBindings="False"
+		Width="650" Height="150"
+        Title="Select Version">
+
+	<StackPanel Margin="5">
+		<TextBlock Name="VersionText" Text="" HorizontalAlignment="Center"/>
+		<TextBlock Text="Select a version to install:" HorizontalAlignment="Center" Margin="5"/>		
+		<ComboBox Margin="5" Width="550" HorizontalAlignment="Center" Name="ReleasesCombo">
+
+			<ComboBox.ItemTemplate>
+				<DataTemplate>
+					<TextBlock Text="{Binding tag_name}"/>
+				</DataTemplate>
+			</ComboBox.ItemTemplate>
+			
+		</ComboBox>
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+			<Button Content="Install" Margin="5" Click="OnInstallClick"/>
+			<Button Content="Cancel" Margin="5" Click="OnCancelClick"/>
+		</StackPanel>
+	</StackPanel>
+</Window>

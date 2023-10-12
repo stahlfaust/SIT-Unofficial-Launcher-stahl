@@ -16,13 +16,21 @@ using System;
 using System.Threading;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using Avalonia.Platform;
 
 namespace SIT_Unofficial_Launcher.Views;
 
 public partial class MainWindow : Window
 {
     LauncherConfig config = new();
-    HttpClient httpClient = new() { Timeout = Timeout.InfiniteTimeSpan };
+    HttpClient httpClient = new() { 
+        Timeout = Timeout.InfiniteTimeSpan, 
+        DefaultRequestHeaders = { 
+            { "X-GitHub-Api-Version", "2022-11-28" }, 
+            { "User-Agent", "request" } 
+        } 
+    };
 
     public MainWindow()
     {
@@ -92,118 +100,66 @@ public partial class MainWindow : Window
         return;
     }
 
-    private async Task InstallSIT(string version)
+    private async Task InstallSIT(GithubRelease version)
     {
         if (File.Exists(config.InstallPath + @"\EscapeFromTarkov_BE.exe"))
         {
             await CleanUpEFTDirectory();
         }
 
-        switch (version)
+        if (config.TarkovVersion != version.body)
         {
-            case "3.6.1":
-                {
-                    if (config.TarkovVersion != "0.13.1.25206")
-                    {
-                        await MessageBoxManager.
-                            GetMessageBoxStandard("Error", $"Your Tarkov version is incorrect for the selected SIT version.\nInstalled: {config.TarkovVersion}\nRequired: 0.13.1.25206", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).
-                            ShowWindowDialogAsync(this);
-                        return;
-                    }
-
-                    if (!Directory.Exists(config.InstallPath + @"\SITLauncher\CoreFiles"))
-                        Directory.CreateDirectory(config.InstallPath + @"\SITLauncher\CoreFiles");
-
-                    if (!Directory.Exists(config.InstallPath + @"\SITLauncher\Backup\CoreFiles"))
-                        Directory.CreateDirectory(config.InstallPath + @"\SITLauncher\Backup\CoreFiles");
-
-                    if (!Directory.Exists(config.InstallPath + @"\BepInEx\plugins"))
-                    {
-                        await DownloadFile("https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip", config.InstallPath + @"\SITLauncher\BepInEx5.zip", "BepInEx5.zip");
-                        System.IO.Compression.ZipFile.ExtractToDirectory(config.InstallPath + @"\SITLauncher\BepInEx5.zip", config.InstallPath, true);
-                        Directory.CreateDirectory(config.InstallPath + @"\BepInEx\plugins");
-                    }
-                        
-
-                    await DownloadFile("https://github.com/paulov-t/SIT.Core/releases/download/1.7.8611.22925/Assembly-CSharp.dll", config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", "Assembly-CSharp.dll");
-                    if (File.Exists(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll"))
-                        File.Copy(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", config.InstallPath + @"\SITLauncher\Backup\CoreFiles\Assembly-CSharp.dll", true);
-                    File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", true);
-
-                    await DownloadFile("https://github.com/paulov-t/SIT.Core/releases/download/1.7.8611.22925/SIT.Core.dll", config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", "SIT.Core.dll");                    
-                    File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll", true);
-
-                    using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("SIT_Unofficial_Launcher.Resources.Aki.Common.dll"))
-                    {
-                        using (var file = new FileStream(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Aki.Common.dll", FileMode.Create, FileAccess.Write))
-                        {
-                            resource.CopyTo(file);
-                        }
-                    }
-
-                    using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("SIT_Unofficial_Launcher.Resources.Aki.Reflection.dll"))
-                    {
-                        using (var file = new FileStream(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Aki.Reflection.dll", FileMode.Create, FileAccess.Write))
-                        {
-                            resource.CopyTo(file);
-                        }
-                    }
-
-                    await MessageBoxManager.GetMessageBoxStandard("Info", "Installation complete.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
-                }
-                break;
-            case "3.7.0":
-                {
-                    if (config.TarkovVersion != "0.13.5.26282")
-                    {
-                        await MessageBoxManager.
-                            GetMessageBoxStandard("Error", $"Your Tarkov version is incorrect for the selected SIT version.\nInstalled: {config.TarkovVersion}\nRequired: 0.13.5.26282", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).
-                            ShowWindowDialogAsync(this);
-                        return;
-                    }
-
-                    if (!Directory.Exists(config.InstallPath + @"\SITLauncher\CoreFiles"))
-                        Directory.CreateDirectory(config.InstallPath + @"\SITLauncher\CoreFiles");
-
-                    if (!Directory.Exists(config.InstallPath + @"\SITLauncher\Backup\CoreFiles"))
-                        Directory.CreateDirectory(config.InstallPath + @"\SITLauncher\Backup\CoreFiles");
-
-                    if (!Directory.Exists(config.InstallPath + @"\BepInEx\plugins"))
-                    {
-                        await DownloadFile("https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip", config.InstallPath + @"\SITLauncher\BepInEx5.zip", "BepInEx5.zip");
-                        System.IO.Compression.ZipFile.ExtractToDirectory(config.InstallPath + @"\SITLauncher\BepInEx5.zip", config.InstallPath, true);
-                        Directory.CreateDirectory(config.InstallPath + @"\BepInEx\plugins");
-                    }
-
-
-                    await DownloadFile("https://github.com/paulov-t/SIT.Core/releases/download/1.9.8663.32326/Assembly-CSharp.dll", config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", "Assembly-CSharp.dll");
-                    if (File.Exists(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll"))
-                        File.Copy(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", config.InstallPath + @"\SITLauncher\Backup\CoreFiles\Assembly-CSharp.dll", true);
-                    File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", true);
-
-                    await DownloadFile("https://github.com/paulov-t/SIT.Core/releases/download/1.9.8663.32326/SIT.Core.dll", config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", "SIT.Core.dll");
-                    File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll", true);
-
-                    using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("SIT_Unofficial_Launcher.Resources.Aki.Common.dll"))
-                    {
-                        using (var file = new FileStream(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Aki.Common.dll", FileMode.Create, FileAccess.Write))
-                        {
-                            resource.CopyTo(file);
-                        }
-                    }
-
-                    using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("SIT_Unofficial_Launcher.Resources.Aki.Reflection.dll"))
-                    {
-                        using (var file = new FileStream(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Aki.Reflection.dll", FileMode.Create, FileAccess.Write))
-                        {
-                            resource.CopyTo(file);
-                        }
-                    }
-
-                    await MessageBoxManager.GetMessageBoxStandard("Info", "Installation complete.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
-                }
-                break;
+            ButtonResult result = await MessageBoxManager.
+                GetMessageBoxStandard("Error", $"Your Tarkov version is incorrect for the selected SIT version.\nAre you sure you want to continue?\n\nInstalled: {config.TarkovVersion}\nRequired: {version.body}", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Error).
+                ShowWindowDialogAsync(this);
+            if (result == ButtonResult.No)
+            {
+                return;
+            }            
         }
+
+        if (!Directory.Exists(config.InstallPath + @"\SITLauncher\CoreFiles"))
+            Directory.CreateDirectory(config.InstallPath + @"\SITLauncher\CoreFiles");
+
+        if (!Directory.Exists(config.InstallPath + @"\SITLauncher\Backup\CoreFiles"))
+            Directory.CreateDirectory(config.InstallPath + @"\SITLauncher\Backup\CoreFiles");
+
+        if (!Directory.Exists(config.InstallPath + @"\BepInEx\plugins"))
+        {
+            await DownloadFile("https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip", config.InstallPath + @"\SITLauncher\BepInEx5.zip", "BepInEx5.zip");
+            System.IO.Compression.ZipFile.ExtractToDirectory(config.InstallPath + @"\SITLauncher\BepInEx5.zip", config.InstallPath, true);
+            Directory.CreateDirectory(config.InstallPath + @"\BepInEx\plugins");
+        }
+
+        //We don't use index as they might be different
+        GithubRelease.Asset assemblyAsset = version.assets.Find(q => q.name == "Assembly-CSharp.dll");
+        GithubRelease.Asset sitcoreAsset = version.assets.Find(q => q.name == "SIT.Core.dll");
+
+        await DownloadFile(assemblyAsset.browser_download_url, config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", "Assembly-CSharp.dll");
+        if (File.Exists(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll"))
+            File.Copy(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", config.InstallPath + @"\SITLauncher\Backup\CoreFiles\Assembly-CSharp.dll", true);
+        File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", true);
+
+        await DownloadFile(sitcoreAsset.browser_download_url, config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", "SIT.Core.dll");                    
+        File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll", true);
+
+        using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("SIT_Unofficial_Launcher.Resources.Aki.Common.dll"))
+        {
+            using (var file = new FileStream(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Aki.Common.dll", FileMode.Create, FileAccess.Write))
+            {
+                resource.CopyTo(file);
+            }
+        }
+
+        using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("SIT_Unofficial_Launcher.Resources.Aki.Reflection.dll"))
+        {
+            using (var file = new FileStream(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Aki.Reflection.dll", FileMode.Create, FileAccess.Write))
+            {
+                resource.CopyTo(file);
+            }
+        }
+
+        await MessageBoxManager.GetMessageBoxStandard("Info", "Installation complete.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
     }
 
     private async Task DownloadFile(string url, string filePath, string fileName)
@@ -290,12 +246,14 @@ public partial class MainWindow : Window
             await MessageBoxManager.GetMessageBoxStandard("Error", $"Unable to communicate with the Server\n{ex.Message}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
             return "error";
         }
-        return null;
     }
 
     private async void OnConnectClick(object sender, RoutedEventArgs e)
     {
-        config.Save(config);
+        if (config.RememberLogin == true)
+            config.Save(config, true);
+        else
+            config.Save(config);
 
         if (!File.Exists(config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll"))
         {
@@ -328,7 +286,7 @@ public partial class MainWindow : Window
 
         string arguments = $"-token={returnData} -config={{\"BackendUrl\":\"{AddressBox.Text}\",\"Version\":\"live\"}}";
         Process.Start(config.InstallPath + @"\EscapeFromTarkov.exe", arguments);
-        config.Save(config);
+
         WindowState = WindowState.Minimized;
 
         if (config.CloseAfterLaunch)
@@ -354,9 +312,14 @@ public partial class MainWindow : Window
             }
 
             config.InstallPath = result.FirstOrDefault().TryGetLocalPath();
-            string fileVersion = FileVersionInfo.GetVersionInfo(result.FirstOrDefault().TryGetLocalPath() + @"\EscapeFromTarkov.exe").FileVersion;
+            string fileVersion = FileVersionInfo.GetVersionInfo(result.FirstOrDefault().TryGetLocalPath() + @"\EscapeFromTarkov.exe").ProductVersion;
+            fileVersion = Regex.Match(fileVersion, @"[0]{1,}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}\-[0-9]{1,5}").Value.Replace("-", ".");
             config.TarkovVersion = fileVersion;
-            config.Save(config);
+
+            if (config.RememberLogin == true)
+                config.Save(config, true);
+            else
+                config.Save(config);
 
             await MessageBoxManager.GetMessageBoxStandard("Info", $"Your selected EFT version is: {fileVersion}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
         }        
@@ -374,7 +337,8 @@ public partial class MainWindow : Window
         string path = config.InstallPath + @"\EscapeFromTarkov.exe";
         if (File.Exists(path))
         {
-            string fileVersion = FileVersionInfo.GetVersionInfo(path).FileVersion;
+            string fileVersion = FileVersionInfo.GetVersionInfo(path).ProductVersion;
+            fileVersion = Regex.Match(fileVersion, @"[0]{1,}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}\-[0-9]{1,5}").Value.Replace("-", ".");
             config.TarkovVersion = fileVersion;
             await MessageBoxManager.GetMessageBoxStandard("Info", $"Your selected EFT version is: {fileVersion}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
         }
@@ -396,22 +360,64 @@ public partial class MainWindow : Window
             await MessageBoxManager.GetMessageBoxStandard("Error", "There is no install path selected.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
             return;
         }
-        var msgBox = MessageBoxManager.GetMessageBoxCustom(new MessageBoxCustomParams
+
+        try
         {
-            ContentTitle = "Select Version",
-            ContentMessage = "Select the version of SIT to install.\n",
-            Icon = MsBox.Avalonia.Enums.Icon.Setting,
-            ButtonDefinitions = new List<ButtonDefinition>()
+            StatusText.Text = "Fetcing releases...";
+            StatusText.IsVisible = true;
+            StatusProgressBar.IsVisible = true;
+
+            string releasesString = await httpClient.GetStringAsync(@"https://api.github.com/repos/paulov-t/SIT.Core/releases");
+            List<GithubRelease> githubReleases = new();
+            githubReleases = JsonSerializer.Deserialize<List<GithubRelease>>(releasesString);            
+
+            if (githubReleases.Count > 0)
             {
-                new() { Name = "3.6.1" },
-                new() { Name = "3.7.0" }
+                foreach (GithubRelease release in githubReleases)
+                {
+                    var match = Regex.Match(release.body, @"[0]{1,}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,5}");
+                    if (match.Success)
+                    {
+                        release.tag_name = release.name + " - Tarkov Version: " + match.Value;
+                        release.body = match.Value;
+                    }
+
+                    List<GithubRelease.Asset> newAssets = new();
+                    foreach (GithubRelease.Asset asset in release.assets)
+                    {
+                        if (asset.name == "Assembly-CSharp.dll" || asset.name == "SIT.Core.dll")
+                            newAssets.Add(asset);
+                    }
+                    release.assets = newAssets;
+                }
+
+                StatusText.Text = null;
+                StatusText.IsVisible = false;
+                StatusProgressBar.IsVisible = false;
+
+                SelectSitVersion selectWindow = new(githubReleases, config.TarkovVersion);
+                GithubRelease selectedVersion = await selectWindow.ShowDialog<GithubRelease>(this);
+
+                if (selectedVersion != null)
+                {
+                    await InstallSIT(selectedVersion);
+                }
             }
-        });
-        var result = await msgBox.ShowWindowDialogAsync(this);
-        if (result != null)
-        {
-            await InstallSIT(result);
+            else
+            {
+                StatusText.Text = null;
+                StatusText.IsVisible = false;
+                StatusProgressBar.IsVisible = false;
+
+                return;
+            }
+            
         }
+        catch (HttpRequestException ex)
+        {
+            Debug.Write(ex);
+        }
+        
     }
 
     private async void OnOpenPluginsFolderClick(object sender, RoutedEventArgs e)
