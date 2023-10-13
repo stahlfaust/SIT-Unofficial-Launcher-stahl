@@ -5,14 +5,13 @@ This was made to hopefully simplify the process of installing SIT to your Tarkov
 Download and extract the [launcher release](https://github.com/Lacyway/SIT-Unofficial-Launcher/releases/latest/download/SIT.Unofficial.Launcher.Desktop.exe.zip) to any folder. Always run the launcher as an administrator.
 ## Setting up SIT
  1. Open the launcher
- 2. Go to "Tools" and click "Download Patcher"
- 3. Download the Patcher(s) required to reach the version you are trying to run SIT on.
- 4. Extract the Patcher(s) and run them.
- 5. Go to "Settings" and click "Change" next to "Install Path" and select the EFT folder you just downgraded.
- 6. The launcher should now automatically detect your version. Make sure it is correct.
- 7. Go to "Tools" and click "Install SIT".
- 8. Select the version you want and click "Install".
- 9. Once the installation is completed you can connect to the server from "Play".
+ 2. Go to "Settings" and click "Change" next to "Install Path" and select the path to your EFT folder.
+ 3. Go to "Tools" and click "Download Patcher".
+ 4. Select the patcher you need to run to reach the required patch for SIT.
+ 5. Wait for it to download and run. Repeat step 3-5 if there are more patchers required.
+ 6. Go to "Tools" and click "Install SIT".
+ 7. Select the version you want and click "Install".
+ 8. Once the installation is completed you can connect to the server from "Play".
 ## Pictures
 ![image](https://github.com/Lacyway/SIT-Unofficial-Launcher/assets/20912169/c01583ba-9e49-4daf-b65b-cd4621479db1)
 ![image](https://github.com/Lacyway/SIT-Unofficial-Launcher/assets/20912169/0d7e5c33-e040-43a8-85b8-f0bd354b02ca)
