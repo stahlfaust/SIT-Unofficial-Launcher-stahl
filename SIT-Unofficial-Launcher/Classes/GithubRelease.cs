@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SIT_Unofficial_Launcher
+namespace SIT_Unofficial_Launcher.Classes
 {
     public class GithubRelease
     {
@@ -61,7 +61,7 @@ namespace SIT_Unofficial_Launcher
             public string received_events_url { get; set; }
             public string type { get; set; }
             public bool site_admin { get; set; }
-        }        
+        }
 
         public class Uploader
         {

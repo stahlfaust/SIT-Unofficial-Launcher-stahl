@@ -4,7 +4,7 @@
         <Border Padding="20">
 			<StackPanel>
 				<Button Content="TestButton"/>
-				<Button Content="TestButton" Classes="TitleBar"/>
+				<Button Content="X" Classes="TitleBar"/>
 			</StackPanel>
         </Border>
     </Design.PreviewWith>
@@ -14,13 +14,16 @@
 	<!--Title Bar Buttons-->
 	<Style Selector="Button.TitleBar">
 		<Setter Property="BorderBrush" Value="Transparent"/>
+		<Setter Property="FontSize" Value="12"/>
+		<Setter Property="CornerRadius" Value="8"/>
 	</Style>
 
 	<Style Selector="Button.TitleBar:pointerover">
-		<Setter Property="FontWeight" Value="SemiBold"/>
+		<Setter Property="FontWeight" Value="Regular"/>
 	</Style>
 
 	<Style Selector="Button.TitleBar:pointerover /template/ ContentPresenter">
+		<Setter Property="FontWeight" Value="Regular"/>
 		<Setter Property="BorderBrush" Value="Transparent"/>
 		<Setter Property="BorderThickness" Value="0"/>
 	</Style>

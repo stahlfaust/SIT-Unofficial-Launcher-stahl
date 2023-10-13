@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Markup.Xaml;
 using SIT_Unofficial_Launcher.Views;
 using System;
+using System.Diagnostics;
 
 namespace SIT_Unofficial_Launcher.CustomControls
 {
@@ -35,6 +36,11 @@ namespace SIT_Unofficial_Launcher.CustomControls
             {
                 desktop.MainWindow.WindowState = WindowState.Minimized;
             }
+        }
+
+        private void OnHelpButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            Process.Start("explorer.exe", "https://github.com/Lacyway/SIT-Unofficial-Launcher/tree/master#setting-up-sit");
         }
     }
 }

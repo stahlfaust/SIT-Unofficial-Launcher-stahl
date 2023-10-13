@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Buffers;
 
-namespace SIT_Unofficial_Launcher
+namespace SIT_Unofficial_Launcher.Classes
 {
     public class TarkovRequesting
     {
@@ -74,7 +74,7 @@ namespace SIT_Unofficial_Launcher
 
             if (method != "GET" && !string.IsNullOrEmpty(data))
             {
-                byte[] bytes = (compress) ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_SPEED) : Encoding.UTF8.GetBytes(data);
+                byte[] bytes = compress ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_SPEED) : Encoding.UTF8.GetBytes(data);
 
                 request.ContentType = "application/json";
                 request.ContentLength = bytes.Length;
@@ -132,7 +132,7 @@ namespace SIT_Unofficial_Launcher
 
             if (method != "GET" && !string.IsNullOrEmpty(data))
             {
-                byte[] bytes = (compress) ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_COMPRESSION) : Encoding.UTF8.GetBytes(data);
+                byte[] bytes = compress ? SimpleZlib.CompressToBytes(data, zlibConst.Z_BEST_COMPRESSION) : Encoding.UTF8.GetBytes(data);
 
                 request.ContentType = "application/json";
                 request.ContentLength = bytes.Length;

@@ -27,7 +27,7 @@
 		<StackPanel Grid.Column="0" Grid.Row="1" Margin="2">
 			
 			<TabControl>
-				<TabItem Header="Play">
+				<TabItem Header="Play" ToolTip.Tip="Connect and play.">
 					<Grid>
 
 						<Grid.ColumnDefinitions>
@@ -68,19 +68,26 @@
 						
 					</Grid>
 				</TabItem>
-				<TabItem Header="Tools">
-					<StackPanel Margin="5">
-						<!--<Button Content="Cleanup EFT Directory" Click="OnCleanupDirClick" Margin="5" ToolTip.Tip="Cleans up the EFT install path, removing unnecessary files."/>-->
-						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Install SIT" Click="OnInstallSITClick" Margin="5" ToolTip.Tip="Install 'SIT' and 'BepInEx'. Also installs 'Aki.Common' and 'Aki.Reflection' for mod support."/>
-						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open Install Folder" Margin="5" Click="OnOpenEFTFolderClick" ToolTip.Tip="Open the EFT install path."/>
-						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open Plugins Folder" Click="OnOpenPluginsFolderClick" Margin="5" ToolTip.Tip="Open the BepInEx plugins folder."/>
-						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Download Patcher" Margin="5" Click="OnDownloadPatcherClick" ToolTip.Tip="Download the 'DowngradePatcher' matching your EFT version. Extract the patcher to your 'Install Path'."/>
-						<Button Width="150" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open SIT Config" Margin="5" Click="OnSITConfigClick" ToolTip.Tip="Open SIT config file."/>
-					</StackPanel>
+				<TabItem Header="Tools" ToolTip.Tip="Various helping tools.">
+					<Border Background="#99000000" Width="200" CornerRadius="16" BorderBrush="DarkGray" BorderThickness="1">
+						<StackPanel Margin="5">
+							<Button Width="175" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Install SIT" Click="OnInstallSITClick" Margin="5" ToolTip.Tip="Install 'SIT' and 'BepInEx'. Also installs 'Aki.Common' and 'Aki.Reflection' for mod support."/>
+							<Button Width="175" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open Install Folder" Margin="5" Click="OnOpenEFTFolderClick" ToolTip.Tip="Open the EFT install path."/>
+							<Button Width="175" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open Plugins Folder" Click="OnOpenPluginsFolderClick" Margin="5" ToolTip.Tip="Open the BepInEx plugins folder."/>
+							<Button Width="175" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Download Patcher" Margin="5" Click="OnDownloadPatcherClick" ToolTip.Tip="Select a DowngradePatcher to download and run. These files might be >1GB so be patient. If an error occurs when the Patcher is running the files won't be deleted."/>
+							<Button Width="175" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Content="Open SIT Config" Margin="5" Click="OnSITConfigClick" ToolTip.Tip="Open SIT config file."/>
+						</StackPanel>
+					</Border>
 
 				</TabItem>
+
+				<TabItem Header="Mods" ToolTip.Tip="Coming soon.">
+					<Border Background="#99000000" CornerRadius="16" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="DarkGray" BorderThickness="1">
+						<TextBlock Text="Mod support is not implemented yet. Install them manually." HorizontalAlignment="Center" Margin="10"/>
+					</Border>
+				</TabItem>
 				
-				<TabItem Header="Settings">
+				<TabItem Header="Settings" ToolTip.Tip="Launcher settings.">
 					<StackPanel>						
 						<CheckBox Content="Close Launcher After Game Launch" ToolTip.Tip="Closes the launcher automatically after opening the game." IsChecked="{Binding CloseAfterLaunch}"/>
 						<CheckBox Content="Look For Updates" ToolTip.Tip="Automatically look for updates when opening the launcher." IsChecked="{Binding LookForUpdates}"/>
@@ -114,7 +121,7 @@
 			
 			<StackPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5">
 				<TextBlock Name="StatusText" HorizontalAlignment="Center" IsVisible="False"/>
-				<ProgressBar Name="StatusProgressBar" IsIndeterminate="True" IsVisible="False" Width="300"/>
+				<ProgressBar Name="StatusProgressBar" IsVisible="False" Width="300" ShowProgressText="True"/>
 				<TextBlock Name="VersionText" HorizontalAlignment="Right"/>
 			</StackPanel>
 			

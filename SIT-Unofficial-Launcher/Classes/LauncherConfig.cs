@@ -12,7 +12,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
-namespace SIT_Unofficial_Launcher
+namespace SIT_Unofficial_Launcher.Classes
 {
     internal class LauncherConfig : PropertyChangedBase
     {

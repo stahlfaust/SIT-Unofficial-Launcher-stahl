@@ -4,12 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="30"
              x:Class="SIT_Unofficial_Launcher.CustomControls.TitleBar">
-	
-	<Grid Grid.Row="0" ColumnDefinitions="Auto, Auto, *, Auto, Auto">
-		<Rectangle Grid.ColumnSpan="4" IsHitTestVisible="False" Fill="Black"/>
+
+	<Grid Grid.Row="0" ColumnDefinitions="Auto, Auto, *, Auto, Auto, Auto">
+		<Rectangle Grid.ColumnSpan="6" IsHitTestVisible="False" Fill="#99000000"/>
 		<Image Source="/Assets/Stay-In-Tarkov-512.ico" Margin="5" Height="20" Width="20" VerticalAlignment="Center"/>
-		<TextBlock Text="SIT Unofficial Launcher" IsHitTestVisible="False" VerticalAlignment="Center" Grid.Column="2"/>
-		<Button Content="_" Grid.Column="3" Click="MinimizeButtonClick" Classes="TitleBar"/>
-		<Button Content="X" Grid.Column="4" Click="CloseButtonClick" Classes="TitleBar"/>
+		<TextBlock Text="SIT Unofficial Launcher" IsHitTestVisible="False" VerticalAlignment="Center" Grid.Column="2" FontWeight="Bold"/>
+		<Button Content="?" Grid.Column="3" Classes="TitleBar" Margin="0,0,25,0" Click="OnHelpButtonClick" Background="DarkGreen" CornerRadius="16" ToolTip.Tip="Open guide."/>
+		<Button Content="_" Grid.Column="4" Click="MinimizeButtonClick" Classes="TitleBar"/>
+		<Button Content="X" Grid.Column="5" Click="CloseButtonClick" Classes="TitleBar" Margin="0,0,5,0"/>
 	</Grid>
 </UserControl>

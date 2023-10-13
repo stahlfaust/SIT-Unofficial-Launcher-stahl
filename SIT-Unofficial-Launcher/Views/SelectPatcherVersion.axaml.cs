@@ -5,14 +5,14 @@ using System.Collections.Generic;
 
 namespace SIT_Unofficial_Launcher.Views
 {
-    public partial class SelectSitVersion : Window
+    public partial class SelectPatcherVersion : Window
     {
-        public SelectSitVersion()
+        public SelectPatcherVersion()
         {
             InitializeComponent();
         }
 
-        public SelectSitVersion(List<GithubRelease> releases, string version)
+        public SelectPatcherVersion(List<GiteaRelease> releases, string version)
             : this()
         {
             ReleasesCombo.DataContext = releases;

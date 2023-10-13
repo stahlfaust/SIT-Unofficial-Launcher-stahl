@@ -3,9 +3,7 @@ using Avalonia.Interactivity;
 using System.IO;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-using MsBox.Avalonia.Dto;
 using System.Collections.Generic;
-using MsBox.Avalonia.Models;
 using System.Diagnostics;
 using Avalonia.Platform.Storage;
 using System.Linq;
@@ -17,6 +15,11 @@ using System.Threading;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using SIT_Unofficial_Launcher.Classes;
+using SharpCompress.Archives.Zip;
+using SharpCompress.Common;
+using SharpCompress.Archives;
+using SIT_Unofficial_Launcher.Utils;
 
 namespace SIT_Unofficial_Launcher.Views;
 
@@ -99,17 +102,278 @@ public partial class MainWindow : Window
         return;
     }
 
-    private async Task InstallSIT(GithubRelease version)
+    private async Task<bool> DownloadFile(string fileName, string filePath, string fileUrl, bool showProgress = false)
     {
+        try
+        {
+            if (showProgress == true)
+                Dispatcher.UIThread.Post(() => ShowProgress(true, $"Downloading '{fileName}'"));
+
+            filePath = filePath + $@"\{fileName}";
+
+            var progress = new Progress<float>((prog) => { Dispatcher.UIThread.Post(() => { StatusProgressBar.Value = (int)Math.Floor(prog); }); });
+            using (var file = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                await HttpClientProgressExtensions.DownloadDataAsync(httpClient, fileUrl, file, progress);
+
+            if (showProgress == true)
+                Dispatcher.UIThread.Post(() => ShowProgress(false));
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    private void ShowProgress(bool enabled, string text = null)
+    {
+        if (!enabled)
+        {
+            StatusProgressBar.IsVisible = false;
+            StatusText.Text = null;
+            return;
+        }
+
+        if (StatusProgressBar.IsVisible == false)
+            StatusProgressBar.IsVisible = true;
+
+        if (text != null)
+        {
+            StatusText.Text = text;
+
+            if (StatusText.IsVisible != true)
+                StatusText.IsVisible = true;
+        }
+        else
+        {
+            StatusText.Text = null;
+
+            if (StatusText.IsVisible == true)
+                StatusText.IsVisible = false;
+        }
+    }    
+
+    private async Task<string> RunPatcher()
+    {
+        if (!File.Exists(config.InstallPath + @"\Patcher.exe"))
+            return null;
+
+        Process patcherProcess = new()
+        {
+            StartInfo = new()
+            {
+                FileName = config.InstallPath + @"\Patcher.exe",
+                WorkingDirectory = config.InstallPath,
+                Arguments = "autoclose"
+            },
+            EnableRaisingEvents = true
+        };
+        patcherProcess.Start();
+        await patcherProcess.WaitForExitAsync();
+
+        string patcherResult = null;
+
+        switch (patcherProcess.ExitCode)
+        {
+            case 0:
+                {
+                    patcherResult = "Patcher was closed.";
+                    break;
+                }
+            case 10:
+                {
+                    patcherResult = "Patcher was succesful.";
+                    if (File.Exists(config.InstallPath + @"\Patcher.exe"))
+                        File.Delete(config.InstallPath + @"\Patcher.exe");
+
+                    if (File.Exists(config.InstallPath + @"\Patcher.log"))
+                        File.Delete(config.InstallPath + @"\Patcher.log");
+
+                    if (Directory.Exists(config.InstallPath + @"\Aki_Patches"))
+                        Directory.Delete(config.InstallPath + @"\Aki_Patches", true);
+
+                    break;
+                }
+            case 11:
+                {
+                    patcherResult = "Could not find 'EscapeFromTarkov.exe'.";
+                    break;
+                }
+            case 12:
+                {
+                    patcherResult = "'Aki_Patches' is missing.";
+                    break;
+                }
+            case 13:
+                {
+                    patcherResult = "Install folder is missing a file.";
+                    break;
+                }
+            case 14:
+                {
+                    patcherResult = "Install folder is missing a folder.";
+                    break;
+                }
+            case 15:
+                {
+                    patcherResult = "Patcher failed.";
+                    break;
+                }
+            default:
+                {
+                    patcherResult = "Unknown error.";
+                    break;
+                }
+
+        }
+        return patcherResult;
+    }
+
+    private async Task DownloadPatcher()
+    {
+        GiteaRelease selectedVersion = null;
+
+        string releasesString = await httpClient.GetStringAsync(@"https://dev.sp-tarkov.com/api/v1/repos/SPT-AKI/Downgrade-Patches/releases");
+        List<GiteaRelease> giteaReleases = JsonSerializer.Deserialize<List<GiteaRelease>>(releasesString);
+
+        string tarkovVersion = config.TarkovVersion.Split(".").Last();
+
+        selectedVersion = await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            SelectPatcherVersion selectWindow = new(giteaReleases, config.TarkovVersion) { WindowStartupLocation = WindowStartupLocation.CenterOwner };
+            selectedVersion = await selectWindow.ShowDialog<GiteaRelease>(this);
+            return selectedVersion;
+        });
+
+        if (selectedVersion == null)
+            return;
+
+        if (selectedVersion.name.Split(" to ")[0] != config.TarkovVersion.Split(".").Last())
+        {
+            bool answer = await Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                ButtonResult warningResult = await MessageBoxManager.
+                GetMessageBoxStandard("Error", $"Your Tarkov version is incorrect for the selected patcher.\nAre you sure you want to continue?\n\nInstalled: {config.TarkovVersion.Split(".").Last()}\nRequired: {selectedVersion.name.Split(" to ")[0]}", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Error).
+                ShowWindowDialogAsync(this);
+                if (warningResult == ButtonResult.No)
+                    return false;
+                else
+                    return true;
+            });
+            if (answer == false)
+                return;
+        }
+
+        string mirrorsUrl = selectedVersion.assets.Find(q => q.name == "mirrors.json").browser_download_url;
+        string mirrorsString = await httpClient.GetStringAsync(mirrorsUrl);
+        List<Mirrors> mirrors = JsonSerializer.Deserialize<List<Mirrors>>(mirrorsString);
+        string link = null;
+
+        foreach (Mirrors mirror in mirrors)
+        {
+            if (mirror.Link.Contains("gofile.io"))
+            {
+                link = mirror.Link;
+                break;
+            }
+        }
+
+        if (link == null)
+            return;
+
+        bool success = await DownloadFile("patcher.zip", config.InstallPath, link, true);
+
+        if (success == false)
+            return;
+
+        using ZipArchive zip = ZipArchive.Open(config.InstallPath + @"\patcher.zip");
+        var files = zip.Entries;
+
+        foreach (var file in files)
+        {
+            if (file.IsDirectory == false)
+            {
+                file.WriteToDirectory(config.InstallPath, new ExtractionOptions()
+                {
+                    ExtractFullPath = true,
+                    Overwrite = true
+                });
+            }            
+        }
+
+        var patcherDir = Directory.GetDirectories(config.InstallPath, "Patcher*").First();
+
+        await UtilFunctions.CloneDirectory(patcherDir, config.InstallPath);
+        Directory.Delete(patcherDir, true);
+
+        string result = await RunPatcher();
+
+        if (result != "Patcher was succesful." || result == null)
+        {
+            Dispatcher.UIThread.Post(async () =>
+            {
+                await MessageBoxManager.GetMessageBoxStandard("Error", result, ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+                return;
+            });
+        }
+        else
+        {
+            Dispatcher.UIThread.Post(async () =>
+            {
+                await MessageBoxManager.GetMessageBoxStandard("Success", result, ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Success).ShowAsync();
+            });
+        }
+
+    }
+
+    private async Task InstallSIT()
+    {
+        GithubRelease selectedVersion = null;        
+
+        try
+        {
+
+            string releasesString = await httpClient.GetStringAsync(@"https://api.github.com/repos/paulov-t/SIT.Core/releases");
+            List<GithubRelease> githubReleases = new();
+            githubReleases = JsonSerializer.Deserialize<List<GithubRelease>>(releasesString);
+
+            if (githubReleases.Count > 0)
+            {
+                foreach (GithubRelease release in githubReleases)
+                {
+                    var match = Regex.Match(release.body, @"[0]{1,}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,5}");
+                    if (match.Success)
+                    {
+                        release.tag_name = release.name + " - Tarkov Version: " + match.Value;
+                        release.body = match.Value;
+                    }
+                }
+
+                SelectSitVersion selectWindow = new(githubReleases, config.TarkovVersion) { WindowStartupLocation = WindowStartupLocation.CenterOwner };
+                selectedVersion = await selectWindow.ShowDialog<GithubRelease>(this);
+
+                if (selectedVersion == null)
+                    return;
+            }
+            else
+                return;
+
+        }
+        catch (HttpRequestException ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+
         if (File.Exists(config.InstallPath + @"\EscapeFromTarkov_BE.exe"))
         {
             await CleanUpEFTDirectory();
         }
 
-        if (config.TarkovVersion != version.body)
+        if (config.TarkovVersion != selectedVersion.body)
         {
             ButtonResult result = await MessageBoxManager.
-                GetMessageBoxStandard("Error", $"Your Tarkov version is incorrect for the selected SIT version.\nAre you sure you want to continue?\n\nInstalled: {config.TarkovVersion}\nRequired: {version.body}", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Error).
+                GetMessageBoxStandard("Error", $"Your Tarkov version is incorrect for the selected SIT version.\nAre you sure you want to continue?\n\nInstalled: {config.TarkovVersion}\nRequired: {selectedVersion.body}", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Error).
                 ShowWindowDialogAsync(this);
             if (result == ButtonResult.No)
             {
@@ -131,15 +395,17 @@ public partial class MainWindow : Window
         }
 
         //We don't use index as they might be different from version to version
-        string assemblyUrl = version.assets.Find(q => q.name == "Assembly-CSharp.dll").browser_download_url;
-        string sitcoreUrl = version.assets.Find(q => q.name == "SIT.Core.dll").browser_download_url;
+        string assemblyUrl = selectedVersion.assets.Find(q => q.name == "Assembly-CSharp.dll").browser_download_url;
+        string sitcoreUrl = selectedVersion.assets.Find(q => q.name == "SIT.Core.dll").browser_download_url;
 
-        await DownloadFile(assemblyUrl, config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", "Assembly-CSharp.dll");
+        await DownloadFile("Assembly-CSharp.dll", config.InstallPath + @"\SITLauncher\CoreFiles", assemblyUrl, true);
+
         if (File.Exists(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll"))
             File.Copy(config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", config.InstallPath + @"\SITLauncher\Backup\CoreFiles\Assembly-CSharp.dll", true);
         File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\Assembly-CSharp.dll", config.InstallPath + @"\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll", true);
 
-        await DownloadFile(assemblyUrl, config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", "SIT.Core.dll");                    
+        await DownloadFile("SIT.Core.dll", config.InstallPath + @"\SITLauncher\CoreFiles", sitcoreUrl, true);
+
         File.Copy(config.InstallPath + @"\SITLauncher\CoreFiles\SIT.Core.dll", config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll", true);
 
         using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("SIT_Unofficial_Launcher.Resources.Aki.Common.dll"))
@@ -161,18 +427,34 @@ public partial class MainWindow : Window
         await MessageBoxManager.GetMessageBoxStandard("Info", "Installation complete.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
     }
 
-    private async Task DownloadFile(string url, string filePath, string fileName)
+    private async Task SelectInstallPath()
     {
-        StatusText.Text = "Downloading file: " + fileName;
-        StatusText.IsVisible = true;
-        StatusProgressBar.IsVisible = true;
+        var result = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Select EFT Folder",
+            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync((config.InstallPath == null) ? Directory.GetCurrentDirectory() : config.InstallPath)
+        });
+        if (result.FirstOrDefault() != null)
+        {
+            if (!File.Exists(result.FirstOrDefault().TryGetLocalPath() + @"\EscapeFromTarkov.exe"))
+            {
+                var msgBox = MessageBoxManager.GetMessageBoxStandard("Error", $"The select folder does not contain 'EscapeFromTarkov.exe'. Please select a valid folder.\nPath: {result.FirstOrDefault().TryGetLocalPath()}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error);
+                await msgBox.ShowWindowDialogAsync(this);
+                return;
+            }
 
-        byte[] fileBytes = await httpClient.GetByteArrayAsync(url);
-        await File.WriteAllBytesAsync(filePath, fileBytes);
+            config.InstallPath = result.FirstOrDefault().TryGetLocalPath();
+            string fileVersion = FileVersionInfo.GetVersionInfo(result.FirstOrDefault().TryGetLocalPath() + @"\EscapeFromTarkov.exe").ProductVersion;
+            fileVersion = Regex.Match(fileVersion, @"[0]{1,}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}\-[0-9]{1,5}").Value.Replace("-", ".");
+            config.TarkovVersion = fileVersion;
 
-        StatusText.Text = "Downloading file: " + fileName;
-        StatusText.IsVisible = false;
-        StatusProgressBar.IsVisible = false;
+            if (config.RememberLogin == true)
+                config.Save(config, true);
+            else
+                config.Save(config);
+
+            await MessageBoxManager.GetMessageBoxStandard("Info", $"Your selected EFT version is: {fileVersion}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
+        }
     }
 
     private async Task<string> LoginToServer()
@@ -247,6 +529,8 @@ public partial class MainWindow : Window
         }
     }
 
+    #region BUTTONS
+
     private async void OnConnectClick(object sender, RoutedEventArgs e)
     {
         if (config.RememberLogin == true)
@@ -254,9 +538,27 @@ public partial class MainWindow : Window
         else
             config.Save(config);
 
+        if (config.InstallPath == null)
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Error", "Install Path has not been selected. Go to 'Settings' and select it.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            return;
+        }
+
         if (!File.Exists(config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll"))
         {
-            await MessageBoxManager.GetMessageBoxStandard("Error", "Unable to find 'SIT.Core' in installation folder. Make sure SIT is installed.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            ButtonResult result = await MessageBoxManager.GetMessageBoxStandard("Error", "Unable to find 'SIT.Core' in the installation folder. Would you like to install it now?", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
+            if (result == ButtonResult.Yes)
+            {
+                InstallSIT();
+                return;
+            }
+            else
+                return;
+        }
+
+        if (!File.Exists(config.InstallPath + @"\EscapeFromTarkov.exe"))
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Error", "Unable to find 'EscapeFromTarkov.exe' in install path.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
             return;
         }
 
@@ -269,19 +571,7 @@ public partial class MainWindow : Window
         {
             await MessageBoxManager.GetMessageBoxStandard("Error", "Something went wrong when retrieving data from the server or the action was cancelled. Check the logs.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
             return;
-        }
-
-        if (!File.Exists(config.InstallPath + @"\BepInEx\plugins\SIT.Core.dll"))
-        {
-            await MessageBoxManager.GetMessageBoxStandard("Error", "Unable to find 'SIT.Core.dll' in install path. Make sure SIT is installed.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
-            return;
-        }
-
-        if (!File.Exists(config.InstallPath + @"\EscapeFromTarkov.exe"))
-        {
-            await MessageBoxManager.GetMessageBoxStandard("Error", "Unable to find 'EscapeFromTarkov.exe' in install path.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error).ShowWindowDialogAsync(this);
-            return;
-        }
+        }        
 
         string arguments = $"-token={returnData} -config={{\"BackendUrl\":\"{AddressBox.Text}\",\"Version\":\"live\"}}";
         Process.Start(config.InstallPath + @"\EscapeFromTarkov.exe", arguments);
@@ -295,34 +585,16 @@ public partial class MainWindow : Window
 
     }
 
+    private async void OnDownloadPatcherClick(object sender, RoutedEventArgs e)
+    {
+        //await DownloadPatcher();
+        // Run this as a Task to prevent UI freezes during IO Operations
+        await Task.Run(DownloadPatcher);
+    }
+
     private async void OnChangeInstallPathClick(object sender, RoutedEventArgs e)
     {
-        var result = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions {
-            Title = "Select EFT Folder",
-            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync((config.InstallPath == null) ? Directory.GetCurrentDirectory() : config.InstallPath) 
-        });
-        if (result.FirstOrDefault() != null)
-        {
-            if (!File.Exists(result.FirstOrDefault().TryGetLocalPath() + @"\EscapeFromTarkov.exe"))
-            {
-                var msgBox = MessageBoxManager.GetMessageBoxStandard("Error", $"The select folder does not contain 'EscapeFromTarkov.exe'. Please select a valid folder.\nPath: {result.FirstOrDefault().TryGetLocalPath()}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error);
-                await msgBox.ShowWindowDialogAsync(this);
-                return;
-            }
-
-            config.InstallPath = result.FirstOrDefault().TryGetLocalPath();
-            string fileVersion = FileVersionInfo.GetVersionInfo(result.FirstOrDefault().TryGetLocalPath() + @"\EscapeFromTarkov.exe").ProductVersion;
-            fileVersion = Regex.Match(fileVersion, @"[0]{1,}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}\-[0-9]{1,5}").Value.Replace("-", ".");
-            config.TarkovVersion = fileVersion;
-
-            if (config.RememberLogin == true)
-                config.Save(config, true);
-            else
-                config.Save(config);
-
-            await MessageBoxManager.GetMessageBoxStandard("Info", $"Your selected EFT version is: {fileVersion}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
-        }        
-
+        await SelectInstallPath();
     }
 
     private async void OnCheckVersionClick(object sender, RoutedEventArgs e)
@@ -347,11 +619,6 @@ public partial class MainWindow : Window
         }
     }
 
-    //private async void OnCleanupDirClick(object sender, RoutedEventArgs e)
-    //{
-    //    await CleanUpEFTDirectory();
-    //}
-
     private async void OnInstallSITClick(object sender, RoutedEventArgs e)
     {
         if (config.InstallPath == null)
@@ -360,63 +627,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        try
-        {
-            StatusText.Text = "Fetching releases...";
-            StatusText.IsVisible = true;
-            StatusProgressBar.IsVisible = true;
-
-            string releasesString = await httpClient.GetStringAsync(@"https://api.github.com/repos/paulov-t/SIT.Core/releases");
-            List<GithubRelease> githubReleases = new();
-            githubReleases = JsonSerializer.Deserialize<List<GithubRelease>>(releasesString);            
-
-            if (githubReleases.Count > 0)
-            {
-                foreach (GithubRelease release in githubReleases)
-                {
-                    var match = Regex.Match(release.body, @"[0]{1,}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,5}");
-                    if (match.Success)
-                    {
-                        release.tag_name = release.name + " - Tarkov Version: " + match.Value;
-                        release.body = match.Value;
-                    }
-
-                    //List<GithubRelease.Asset> newAssets = new();
-                    //foreach (GithubRelease.Asset asset in release.assets)
-                    //{
-                    //    if (asset.name == "Assembly-CSharp.dll" || asset.name == "SIT.Core.dll")
-                    //        newAssets.Add(asset);
-                    //}
-                    //release.assets = newAssets;
-                }
-
-                StatusText.Text = null;
-                StatusText.IsVisible = false;
-                StatusProgressBar.IsVisible = false;
-
-                SelectSitVersion selectWindow = new(githubReleases, config.TarkovVersion) { WindowStartupLocation = WindowStartupLocation.CenterOwner };
-                GithubRelease selectedVersion = await selectWindow.ShowDialog<GithubRelease>(this);
-
-                if (selectedVersion != null)
-                {
-                    await InstallSIT(selectedVersion);
-                }
-            }
-            else
-            {
-                StatusText.Text = null;
-                StatusText.IsVisible = false;
-                StatusProgressBar.IsVisible = false;
-
-                return;
-            }
-            
-        }
-        catch (HttpRequestException ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-        
+        await InstallSIT();        
     }
 
     private async void OnOpenPluginsFolderClick(object sender, RoutedEventArgs e)
@@ -459,49 +670,5 @@ public partial class MainWindow : Window
             Process.Start("explorer.exe", config.InstallPath);
     }
 
-    private async void OnDownloadPatcherClick(object sender, RoutedEventArgs e)
-    {
-        await MessageBoxManager.GetMessageBoxStandard("Information", $"You will now be redirected to the download page for the 'AKI DowngradePatcher'.\nAfter downloading the file, extract the contents to your 'Install Path' folder and run the 'Patcher.exe'.\nAfter the Patcher is done it's recommended to reselect your 'Install Path' under 'Settings' to update the installed version.", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Info).ShowWindowDialogAsync(this);
-        Process.Start("explorer.exe", "https://hub.sp-tarkov.com/files/file/204-aki-patcher/#versions");
-    }
-
-    //private async void OnAddServerClick(object sender, RoutedEventArgs e)
-    //{
-    //    MessageBoxCustomParams customParams = new()
-    //    {
-    //        ContentMessage = "Select the name of the server:",
-    //        ContentTitle = "Add New Server",
-    //        CanResize = false,
-    //        Width = 400,
-    //        Icon = MsBox.Avalonia.Enums.Icon.Plus,
-    //        InputParams = new()
-    //        {
-    //            Label = "Name:",
-    //            DefaultValue = ""
-    //        },
-    //        ButtonDefinitions = new List<ButtonDefinition>()
-    //        {
-    //            new ButtonDefinition() { Name = "Add" },
-    //            new ButtonDefinition() { Name = "Cancel", IsCancel = true }
-    //        }
-    //    };
-    //    var box = MessageBoxManager
-    //        .GetMessageBoxCustom(customParams);
-
-    //    var result = await box.ShowWindowDialogAsync(this);
-    //    if (result == "Add")
-    //    {
-    //        config.Servers.Add(new Server { Name = box.InputValue, Address = AddressBox.Text });
-    //        config.Save(config);
-    //    }        
-    //}
-
-    //private void OnRemoveServerClick(object sender, RoutedEventArgs e)
-    //{
-    //    config.Servers.RemoveAt(ServerCombo.SelectedIndex);
-    //    config.Save(config);
-
-    //    if (config.Servers.Count > 0)
-    //        ServerCombo.SelectedIndex = 0;
-    //}
+    #endregion
 }

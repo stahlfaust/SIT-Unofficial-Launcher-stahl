@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="150"
+        x:Class="SIT_Unofficial_Launcher.Views.SelectPatcherVersion"
+		Icon="/Assets/Stay-In-Tarkov-512.ico"
+		CanResize="False"
+		x:CompileBindings="False"
+		Width="650" Height="150"		
+		ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        Title="Select Version">
+
+	<StackPanel Margin="5">
+		<TextBlock Name="VersionText" Text="" HorizontalAlignment="Center"/>
+		<TextBlock Text="Select patcher to download and run:" HorizontalAlignment="Center" Margin="5"/>		
+		<ComboBox Margin="5" Width="550" HorizontalAlignment="Center" Name="ReleasesCombo">
+
+			<ComboBox.ItemTemplate>
+				<DataTemplate>
+					<TextBlock Text="{Binding name}"/>
+				</DataTemplate>
+			</ComboBox.ItemTemplate>
+			
+		</ComboBox>
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+			<Button Content="Install" Margin="5" Click="OnInstallClick" ToolTip.Tip="Install the selected version."/>
+			<Button Content="Cancel" Margin="5" Click="OnCancelClick"/>
+		</StackPanel>
+	</StackPanel>
+</Window>
