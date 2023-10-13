@@ -13,3 +13,5 @@ Download and extract the [launcher release](https://github.com/Lacyway/SIT-Unoff
  7. Go to "Tools" and click "Install SIT".
  8. Select the version you want and click "Install".
  9. Once the installation is completed you can connect to the server from "Play".
+## Credits
+Most of the logic was made originally by paulov-t. This was meant as a re-write to make it more accessible.
